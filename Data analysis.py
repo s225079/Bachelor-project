@@ -16,7 +16,6 @@ import matplotlib.colors as mcolors
 #Substract data from excel files
 
 file_path_t0 = 'C:\Od data\S.cop_210525_t0.xlsx'
-#file_path_t6 = 'C:/Users/Miras/OneDrive - Danmarks Tekniske Universitet/Skrivebord/6. semester/Bachelor/Od data/20250430_Pclara_t6.xlsx'
 file_path_t24 = 'C:\Od data\s.cop_220525_t24.xlsx'
 file_path_t48 = 'C:\Od data\S.cop_230525_t48.xlsx'
 # Read specific Excel range: C29:L34
@@ -29,14 +28,6 @@ df_t0 = pd.read_excel(
     nrows=6         # Rows 29–34
 )
 
-#df_t6 = pd.read_excel(
-   # file_path_t6,
-    #sheet_name='Sheet2',   # Change if needed
-    #engine='openpyxl',
-    #usecols='C:L',
-    #skiprows=27,    # Skip rows before row 29
-    #nrows=6         # Rows 29–34
-#)
 df_t24 = pd.read_excel(
     file_path_t24,
     sheet_name='Sheet2',   # Change if needed
@@ -57,14 +48,12 @@ df_t48 = pd.read_excel(
 
 # Convert to NumPy array
 array_t0 = df_t0.to_numpy()
-#array_t6 = df_t6.to_numpy()
 array_t24 = df_t24.to_numpy()
 array_t48 = df_t48.to_numpy()
 
 #Put data into a vector:
 
 data_t0=np.array([])
-#data_t6=np.array([])
 data_t24=np.array([])
 data_t48=np.array([])
 
@@ -72,7 +61,6 @@ data_t48=np.array([])
 for i in range (0,6):
     
     data_t0=np.concatenate((data_t0,(array_t0[i,1:5]-array_t0[i,0])))
-    #data_t6=np.concatenate((data_t6,(array_t6[i,1:5]-array_t6[i,0])))
     data_t24=np.concatenate((data_t24,(array_t24[i,1:5]-array_t24[i,0])))
     data_t48=np.concatenate((data_t48,(array_t48[i,1:5]-array_t48[i,0])))
 
@@ -80,7 +68,6 @@ for i in range (0,6):
 for i in range (0,6):
     
     data_t0=np.concatenate((data_t0,(array_t0[i,5:9]-array_t0[i,9])))
-    #data_t6=np.concatenate((data_t6,(array_t6[i,5:9]-array_t6[i,9])))
     data_t24=np.concatenate((data_t24,(array_t24[i,5:9]-array_t24[i,9])))
     data_t48=np.concatenate((data_t48,(array_t48[i,5:9]-array_t48[i,9])))
     
@@ -169,8 +156,6 @@ for i in range (0,3):
     mean_H20_2=np.concatenate((mean_H20_2,np.array([np.mean(all_data[44:48,i])])))
     std_H20_2=np.concatenate((std_H20_2,np.array([np.std(all_data[44:48,i])])))
 
-
-print(mean_CP)
     
 
 t=[0,24,48]
@@ -208,7 +193,6 @@ plt.show()
 #Put data into a vector:
 
 data_t0=np.array([])
-#data_t6=np.array([])
 data_t24=np.array([])
 data_t48=np.array([])
 
@@ -245,7 +229,6 @@ all_OD_data=np.transpose(all_OD_data)
 np.shape(all_OD_data)
 all_OD_data=np.hstack((np.zeros((48,1)),all_OD_data))
 
-print(all_OD_data[16:20, 2])
 
 
 #Make plots with the mean and std for each timeframe:
@@ -328,8 +311,6 @@ for i in range (1,3):
 
 
 
-print(mean_Inulin)
-
 
 
 # --- Define custom scale class ---
@@ -365,8 +346,6 @@ class SignedSqrtScale(ScaleBase):
 mscale.register_scale(SignedSqrtScale)
 
 
-print(mean_Glu)
-print(std_Glu)
 
 t=[24,48]
 
@@ -386,22 +365,6 @@ plt.errorbar(t, mean_Starch, yerr=std_Starch, fmt='o-', capsize=10, elinewidth=3
 plt.errorbar(t, mean_bglucan, yerr=std_bglucan, fmt='o-', capsize=10, elinewidth=3, markersize=5, linewidth=3, alpha=0.9, capthick=3,label='beta-glucan', color="blue")
 
 
-
-# Labels and title
-#plt.gca().yaxis.set_major_locator(MultipleLocator(2))
-plt.xlabel('Time (hours)', fontsize=24)
-plt.ylabel('Relative ΔOD_600', fontsize=24)
-plt.title('Relative change in absorbance measurements over time (B. intestini)', fontsize=26)
-plt.grid(True, axis='y')
-plt.xticks(t, fontsize=20)
-plt.yticks(fontsize=20)
-plt.yscale('signed_sqrt')
-#plt.ylim(-5, 15)  # Set y-axis limits here
-
-plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=24, title="Carbon source", title_fontsize=24)
-plt.subplots_adjust(left=0.062, bottom=0.1, right=0.7, top=0.95)
-
-plt.show()
 
 
 
@@ -446,52 +409,6 @@ plt.xticks(fontsize=24)
 plt.yticks(fontsize=22)
 plt.axhline(0, color='black', linewidth=2)
 plt.yscale('signed_sqrt')
-#plt.gca().yaxis.set_major_locator(MultipleLocator(1))
-
-plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=24, title="Carbon source", title_fontsize=24)
-plt.grid(visible=True, which='major', axis='y', linestyle='--', linewidth=1.5)
-plt.grid(visible=True, which='minor', axis='y', linestyle='--', linewidth=1.5)
-plt.subplots_adjust(left=0.075, bottom=0.1, right=0.78, top=0.9)
-plt.show()
-
-
-
-
-
-# Your existing data placeholders and variables
-x = np.array([0, 1.5])  # Positions for 24h and 48h
-t = ['24 h', '48 h']
-bar_width = 0.08
-
-means = [mean_H20, mean_Glu, mean_SBP, mean_CP, mean_RGI,
-         mean_GalMan, mean_FOS, mean_Inulin, mean_Starch, mean_bglucan]
-
-stds = [std_H20, std_Glu, std_SBP, std_CP, std_RGI,
-        std_GalMan, std_FOS, std_Inulin, std_Starch, std_bglucan]
-
-labels = [ 'Water', 'Glucose', 'SBP', 'CP', 'RG-I',
-          'Galactomannan', 'FOS', 'Inulin', 'Starch', 'beta-glucan']
-
-# Define colors (you can choose any matplotlib color names or hex codes)
-colors = ['#1f77b4', '#ff7f0e', '#d62728', '#9467bd', 
-          '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', "#1831BE"]
-
-# Plot bars with assigned colors
-for i in range(len(means)):
-    offset = (i - 5) * bar_width
-    plt.bar(x + offset, means[i], width=bar_width, yerr=stds[i],
-            capsize=7, label=labels[i], error_kw=dict(lw=3.5), color=colors[i])
-
-# Formatting (same as before)
-plt.xticks(x, t)
-plt.xlabel('Time (hours)', fontsize=26)
-plt.ylabel('Relative ΔOD_600', fontsize=26)
-plt.title('Relative change in absorbance measurements over time ($\\mathit{S.\\ copri}$)', fontsize=28)
-plt.grid(True, axis='y')
-plt.xticks(fontsize=24)
-plt.yticks(fontsize=22)
-plt.axhline(0, color='black', linewidth=2)
-plt.yscale('signed_sqrt')
 plt.gca().yaxis.set_major_locator(MultipleLocator(1))
 
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=24, title="Carbon source", title_fontsize=24)
@@ -499,6 +416,7 @@ plt.grid(visible=True, which='major', axis='y', linestyle='--', linewidth=1.5)
 plt.grid(visible=True, which='minor', axis='y', linestyle='--', linewidth=1.5)
 plt.subplots_adjust(left=0.075, bottom=0.1, right=0.78, top=0.9)
 plt.show()
+
 
 
 
