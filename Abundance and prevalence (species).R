@@ -57,11 +57,6 @@ tax_base <- rowData(dat_base) %>% data.frame()
 
 abu_base <- assay(dat_base) %>% data.frame()
 
-#How many samples included?
-
-
-
-
 
 # Filtration of abudance data
 
@@ -75,9 +70,6 @@ abu_base_filtered <- abu_base[rownames(abu_base) %in% names, ]
 
 
 n_base <- (ncol(abu_base_filtered)/nrow(data))*100
-nrow(data)
-ncol(abu_base_filtered)
-n_base
 
 # Convert to long format for ggplot
 abu_base_long <- abu_base_filtered %>%
@@ -106,18 +98,8 @@ for (i in 1:8){
   Prev[i] <- 100-((zero_counts[i]/num_columns)*100)
 }
 
-
 df_prev <- data.frame(Species=rownames(abu_base_filtered),Prevalence=Prev)
 df_prev <- df_prev %>% mutate(category = "Healthy adults (all)")
-
-
-
-
-unique_words <- unique(data$diet)
-print(unique_words)
-
-
-
 
 ########## Diets ##########
 
@@ -134,12 +116,8 @@ WesternStudy_n <-
 data_omnivore <- colData(WesternStudy_n) %>% data.frame()
 
 n_omni <- (nrow(data_omnivore)/nrow(data))*100
-nrow(data_omnivore)
-nrow(data)
-n_omni
 
 abu_western_n <- assay(WesternStudy_n) %>% data.frame()
-
 abu_western_n_filtered <- abu_western_n[rownames(abu_western_n) %in% names, ]
 
 
@@ -147,35 +125,8 @@ abu_western_n_long <- abu_western_n_filtered %>%
   rownames_to_column(var = "Species") %>%
   pivot_longer(-Species, names_to = "Sample", values_to = "Abundance")
 
-#Abundance westernized
-WesternStudy_y <-
-  filter(sampleMetadata, age >= 18) |>
-  filter(!is.na(diet)) |>
-  filter(diet == "vegetarian") |>
-  filter(disease == "healthy") |>
-  filter(body_site == "stool") |>
-  select(where(~ !all(is.na(.x)))) |>
-  returnSamples("relative_abundance", rownames = "short")
 
-data_vege <- colData(WesternStudy_y) %>% data.frame()
-
-n_vege <- (nrow(data_vege)/nrow(data))*100
-nrow(data_vege)
-
-nrow(data)
-n_vege
-
-
-abu_western_y <- assay(WesternStudy_y) %>% data.frame()
-
-abu_western_y_filtered <- abu_western_y[rownames(abu_western_y) %in% names, ]
-
-
-abu_western_y_long <- abu_western_y_filtered %>%
-  rownames_to_column(var = "Species") %>%
-  pivot_longer(-Species, names_to = "Sample", values_to = "Abundance")
-
-#Prevalence non-westernized
+#Prevalence omnivore
 
 zero_counts_n <- numeric(nrow(abu_western_n_filtered))  # Create a vector to store results
 
@@ -197,7 +148,32 @@ for (i in 1:1:nrow(abu_western_n_filtered)){
 
 df_west_n <- data.frame (Species=rownames(abu_western_n_filtered), Prevalence=Prev_west_n, category="Healthy adults (omnivore diet)")
 
-#Prevalence westernized
+
+#Abundance vegetarian
+WesternStudy_y <-
+  filter(sampleMetadata, age >= 18) |>
+  filter(!is.na(diet)) |>
+  filter(diet == "vegetarian") |>
+  filter(disease == "healthy") |>
+  filter(body_site == "stool") |>
+  select(where(~ !all(is.na(.x)))) |>
+  returnSamples("relative_abundance", rownames = "short")
+
+data_vege <- colData(WesternStudy_y) %>% data.frame()
+
+n_vege <- (nrow(data_vege)/nrow(data))*100
+
+abu_western_y <- assay(WesternStudy_y) %>% data.frame()
+
+abu_western_y_filtered <- abu_western_y[rownames(abu_western_y) %in% names, ]
+
+
+abu_western_y_long <- abu_western_y_filtered %>%
+  rownames_to_column(var = "Species") %>%
+  pivot_longer(-Species, names_to = "Sample", values_to = "Abundance")
+
+
+#Prevalence vegetarian
 zero_counts_y <- numeric(nrow(abu_western_y_filtered))  # Create a vector to store results
 
 for (i in 1:nrow(abu_western_y_filtered)){
@@ -219,8 +195,7 @@ df_west_y <- data.frame (Species=rownames(abu_western_y_filtered), Prevalence=Pr
 
 ############ DIet #############
 
-#unique_words <- unique(data$disease)
-#print(unique_words)
+
 
 #collect data
 IBD <-
@@ -242,9 +217,7 @@ abu_IBD <- assay(IBD) %>% data.frame()
 
 
 n_vegan <- (nrow(data_IBD)/nrow(data))*100
-nrow(data_IBD)
-nrow(data)
-n_vegan
+
 
 #Abundance
 # Filter the dataframe based on row names
@@ -257,7 +230,7 @@ abu_IBD_long <- abu_IBD_filtered %>%
   pivot_longer(-Species, names_to = "Sample", values_to = "Abundance")
 
 
-#Prevalence calculations
+#Prevalence calculations (vegan)
 
 #Counting the number of columns=0
 zero_counts <- numeric(nrow(abu_IBD_filtered))  # Create a vector to store results
@@ -299,75 +272,35 @@ abu_combined_all <- bind_rows(
 
 
 
-# Define your breaks (manually or use log_breaks to generate them)
+# Defining breaks
 my_breaks <- c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100)
 
-# Define labels with varying accuracy
+# Defining labels 
 my_labels <- c( "0,0001","0.0001", "0.001", "0.01", "0.1", "1","10","100")
 
-
-
-
-
-
 ggplot(abu_combined_all, aes(x = Species, y = Abundance, fill = category)) +
   geom_boxplot(position = position_dodge2(preserve = "single"), color = "black", size = 1, outlier.size = 2, outlier.shape=16, outlier.colour="black") +
   theme_minimal() +
   labs(title = "Relative abundance of species in stool samples (different habitual diets)",
        x = "Species", y = "Relative abundance (%)") +
   theme(
-    plot.title = element_text(hjust = 0.5, size=32),  # Center the title
-    axis.title.x = element_text(size = 30),  # Increase x-axis title font size
-    axis.title.y = element_text(size = 30),  # Increase y-axis title font size
+    plot.title = element_text(hjust = 0.5, size=32),  
+    axis.title.x = element_text(size = 30),  
+    axis.title.y = element_text(size = 30),  
     axis.text.x = element_text(angle = 45, hjust = 1, size = 28, color="black",face = "italic"),
-    axis.text.y = element_text( size = 28, color="black"),# Increase x-axis text size
-    legend.position = "bottom",  # Move legend to the bottom
-    legend.box = "horizontal",  # Arrange legend items horizontally
-    legend.title = element_blank(),
-    legend.text = element_text(size=27),
-    legend.key.size = unit(2.5, "cm"),
-    panel.grid.major.y = element_line(color = "gray65", size = 0.75),
-    panel.grid.minor.y = element_line(color = "gray75", size = 0.5),
-    
-    # Optional: remove vertical grid lines if you want only horizontal ones
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank()
-    
-  ) +
-  scale_y_log10(breaks = my_breaks, labels = my_labels) +
-  scale_x_discrete(labels = species_names)  # Substitute species names here
-
-
-
-ggplot(abu_combined_all, aes(x = Species, y = Abundance, fill = category)) +
-  geom_boxplot(position = position_dodge2(preserve = "single"), color = "black", size = 1, outlier.size = 2, outlier.shape=16, outlier.colour="black") +
-  stat_summary(fun = median,
-               geom = "text",
-               aes(label = round(..y.., 2)),
-               position = position_dodge2(width = 0.75, preserve = "single"),
-               vjust = -0.5,
-               size = 6) +  # Adjust size to match your plot aesthetics
-  theme_minimal() +
-  labs(title = "Relative abundance of species in stool samples (different habitual diets)",
-       x = "Species", y = "Relative abundance (%)") +
-  theme(
-    plot.title = element_text(hjust = 0.5, size=32),
-    axis.title.x = element_text(size = 30),
-    axis.title.y = element_text(size = 30),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 28, color="black", face = "italic"),
-    axis.text.y = element_text(size = 28, color="black"),
-    legend.position = "bottom",
-    legend.box = "horizontal",
+    axis.text.y = element_text( size = 28, color="black"), 
+    legend.position = "bottom", 
+    legend.box = "horizontal", 
     legend.title = element_blank(),
     legend.text = element_text(size=27),
     legend.key.size = unit(2.5, "cm"),
     panel.grid.major.y = element_line(color = "gray65", size = 0.75),
     panel.grid.minor.y = element_line(color = "gray75", size = 0.5),
     panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank()
-  ) +
+    panel.grid.minor.x = element_blank()) +
   scale_y_log10(breaks = my_breaks, labels = my_labels) +
-  scale_x_discrete(labels = species_names)
+  scale_x_discrete(labels = species_names) 
+
 
 
 ####### Prevalence plot ##########
@@ -439,11 +372,6 @@ filtered_data <- combined_data %>%
 dunn_test_result2 <- filtered_data %>%
   group_by(Species) %>%
   dunn_test(Abundance ~ category, p.adjust.method = "bonferroni")
-
-
-significant_dunn_results <- dunn_test_result2 %>%
-  filter(p.adj < 0.05)
-
 
 
 write.table(dunn_test_result2, file = 'dunn_species.txt', col.names = TRUE,
