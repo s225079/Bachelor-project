@@ -81,7 +81,7 @@ abu_base_long <- abu_base_filtered %>%
 #Prevalence calculations
 
 #Counting the number of columns=0
-zero_counts <- numeric(nrow(abu_base_filtered))  # Create a vector to store results
+zero_counts <- numeric(nrow(abu_base_filtered))  
 
 for (i in 1:nrow(abu_base_filtered)){
   zero_counts[i] <- sum(abu_base_filtered[i, ] == 0)
@@ -89,7 +89,7 @@ for (i in 1:nrow(abu_base_filtered)){
 
 
 #Calculating the prevelance
-num_columns <- ncol(abu_base_filtered)  # Number of columns
+num_columns <- ncol(abu_base_filtered)  
 
 Prev <- numeric(nrow(abu_base_filtered))
 
@@ -128,7 +128,7 @@ abu_western_n_long <- abu_western_n_filtered %>%
 
 #Prevalence omnivore
 
-zero_counts_n <- numeric(nrow(abu_western_n_filtered))  # Create a vector to store results
+zero_counts_n <- numeric(nrow(abu_western_n_filtered)) 
 
 for (i in 1:nrow(abu_western_n_filtered)){
   zero_counts_n[i] <- sum(abu_western_n_filtered[i, ] == 0)
@@ -136,7 +136,7 @@ for (i in 1:nrow(abu_western_n_filtered)){
 
 
 #Calculating the prevelance
-num_columns <- ncol(abu_western_n_filtered)  # Number of columns
+num_columns <- ncol(abu_western_n_filtered) 
 
 Prev_west_n <- numeric(nrow(abu_western_n_filtered))
 
@@ -174,7 +174,7 @@ abu_western_y_long <- abu_western_y_filtered %>%
 
 
 #Prevalence vegetarian
-zero_counts_y <- numeric(nrow(abu_western_y_filtered))  # Create a vector to store results
+zero_counts_y <- numeric(nrow(abu_western_y_filtered))  
 
 for (i in 1:nrow(abu_western_y_filtered)){
   zero_counts_y[i] <- sum(abu_western_y_filtered[i, ] == 0)
@@ -182,7 +182,7 @@ for (i in 1:nrow(abu_western_y_filtered)){
 
 
 #Calculating the prevelance
-num_columns <- ncol(abu_western_y_filtered)  # Number of columns
+num_columns <- ncol(abu_western_y_filtered) 
 
 Prev_west_y <- numeric(nrow(abu_western_y_filtered))
 
@@ -212,9 +212,6 @@ data_IBD <- colData(IBD) %>% data.frame()
 
 abu_IBD <- assay(IBD) %>% data.frame()
 
-#How many samples included?
-
-
 
 n_vegan <- (nrow(data_IBD)/nrow(data))*100
 
@@ -224,7 +221,7 @@ n_vegan <- (nrow(data_IBD)/nrow(data))*100
 abu_IBD_filtered <- abu_IBD[rownames(abu_IBD) %in% names, ]
 
 
-# Convert to long format for ggplot
+# Convert to long format 
 abu_IBD_long <- abu_IBD_filtered %>%
   rownames_to_column(var = "Species") %>%
   pivot_longer(-Species, names_to = "Sample", values_to = "Abundance")
@@ -233,7 +230,7 @@ abu_IBD_long <- abu_IBD_filtered %>%
 #Prevalence calculations (vegan)
 
 #Counting the number of columns=0
-zero_counts <- numeric(nrow(abu_IBD_filtered))  # Create a vector to store results
+zero_counts <- numeric(nrow(abu_IBD_filtered)) 
 
 
 for (i in 1:nrow(abu_IBD_filtered)){
@@ -244,7 +241,7 @@ zero_counts
 
 
 #Calculating the prevelance
-num_columns <- ncol(abu_IBD_filtered)  # Number of columns
+num_columns <- ncol(abu_IBD_filtered) 
 
 Prev_IBD <- numeric(nrow(abu_IBD_filtered))
 nrow(abu_IBD_filtered)
@@ -333,10 +330,9 @@ ggplot(combined_all, aes(x = Species, y = Prevalence, fill = category)) +
   ) +
   scale_x_discrete(labels = species_names) +
   scale_y_sqrt(
-    breaks = seq(0, 100, by = 10),  # Tick marks every 10 units
-    limits = c(0, 100),             # Optional: restrict y-axis to [0, 100]
-    expand = c(0, 0)                # Optional: remove padding around bars
-  )
+    breaks = seq(0, 100, by = 10),  
+    limits = c(0, 100),            
+    expand = c(0, 0) )
 
 
 
@@ -354,21 +350,21 @@ combined_data <- bind_rows(
   abu_IBD_long %>% mutate(category = "Healthy adults (vegan diet)"))
 
 
-# Perform the Kruskal-Wallis test
+#  Kruskal-Wallis test
 kruskal_test_result <- combined_data %>%
   group_by(Species) %>%
   kruskal_test(Abundance ~ category)
 
-# Filter Kruskal-Wallis test results by p-value (e.g., p < 0.05)
+# Filter Kruskal-Wallis test results by p-value
 significant_species <- kruskal_test_result %>%
   filter(p < 0.05) %>%
   pull(Species)
 
-# Subset the original data to include only significant phyla
+# Subset data to include only significant phyla
 filtered_data <- combined_data %>%
   filter(Species %in% significant_species)
 
-# Perform the Dunn test only on significant phyla
+# Dunn test only on significant phyla
 dunn_test_result2 <- filtered_data %>%
   group_by(Species) %>%
   dunn_test(Abundance ~ category, p.adjust.method = "bonferroni")
