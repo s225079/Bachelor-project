@@ -45,9 +45,7 @@ abu <- assay(dat) %>% data.frame()
 
 
 n_base <- (nrow(dat1)/nrow(data))*100
-nrow(dat1)
-nrow(data)
-n_base
+
 
 ######## Merga tax and abu dataframes #####
 
@@ -58,8 +56,7 @@ tax <- rowData(dat) %>% data.frame()  # Extract taxonomy
 abu <- assay(dat) %>% data.frame()    # Extract abundance
 
 # Move row names of abu to a column to match taxonomy
-abu <- abu %>%
-  rownames_to_column(var = "species")
+abu <- abu %>% rownames_to_column(var = "species")
 
 merged_data <- merge(tax[, c("species", "phylum")], abu, by = "species")
 
@@ -73,10 +70,13 @@ phylum_abundance <- merged_data %>%
 
 ########## Plot ##########
 
-# Convert to long format for ggplot2
+
 phylum_abundance_long <- phylum_abundance %>%
   pivot_longer(cols = -phylum, names_to = "sample", values_to = "abundance")
 phylum_abundance_long <- na.omit(phylum_abundance_long)
+
+
+
 ggplot(phylum_abundance_long, aes(x = phylum, y = abundance, fill=phylum)) +
   geom_boxplot(outliers = FALSE) +
   theme_minimal() +
@@ -105,8 +105,6 @@ zero_counts <- numeric(nrow(phylum_abundance))  # Create a vector to store resul
 for (i in 1:nrow(phylum_abundance)){
   zero_counts[i] <- sum(phylum_abundance[i, ] == 0)
 }
-
-
 #Calculating the prevelance
 num_columns <- ncol(phylum_abundance)  # Number of columns
 
@@ -118,28 +116,9 @@ for (i in 1:nrow(phylum_abundance)){
 }
 
 
-
-#Ploting of prevelance
-
-
 df_prev <- data.frame(phylum=phylum_abundance$phylum,Prevalence=Prev)
 
 df_prev<- na.omit(df_prev)
-
-
-ggplot(df_prev, aes(x = phylum, y = Prevalence, fill = phylum)) +
-  geom_bar(stat = "identity") +  # Bars side-by-side
-  theme_minimal() +
-  labs(title = "Prevalence of phyla in stool samples (healthy adults)",
-       x = "Phyla", y = "Prevalence (%)") +
-  theme(
-    plot.title = element_text(hjust = 0.5, size=22),
-    axis.title.x = element_text(size = 20),
-    axis.title.y = element_text(size = 20),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 20, color="black"),
-    axis.text.y = element_text(size = 20, color="black"),
-    legend.position = "none") +
-  scale_y_sqrt()
 
 
 ############### Omnivore ##############
@@ -188,7 +167,7 @@ phylum_abundance_IBD <- merged_data_IBD %>%
 
 
 
-# Convert to long format for ggplot2
+# Convert to long format 
 phylum_abundance_IBD_long <- phylum_abundance_IBD%>%
   pivot_longer(cols = -phylum, names_to = "sample", values_to = "abundance")
 
@@ -196,9 +175,6 @@ phylum_abundance_IBD_long <- na.omit(phylum_abundance_IBD_long)
 
 ########## Prevalence ###########
 
-
-
-######### Plots of prevelance ########
 
 #Counting the number of columns=0
 zero_counts <- numeric(nrow(phylum_abundance_IBD))  # Create a vector to store results
@@ -261,7 +237,7 @@ merged_data_vegan <- merge(tax_vegan[, c("species", "phylum")], abu_vegan, by = 
 
 
 
-######## calculate abundance on phylum level #########
+########  abundance on phylum level #########
 
 phylum_abundance_vegan <- merged_data_vegan %>%
   group_by(phylum) %>%
@@ -269,7 +245,7 @@ phylum_abundance_vegan <- merged_data_vegan %>%
 
 
 
-# Convert to long format for ggplot2
+# Convert to long format
 phylum_abundance_vegan_long <- phylum_abundance_vegan %>%
   pivot_longer(cols = -phylum, names_to = "sample", values_to = "abundance")
 
@@ -305,7 +281,7 @@ df_prev_vegan <- na.omit(df_prev_vegan)
 
 
 
-############### vegan ##############
+############### vegetarian ##############
 
 
 
@@ -351,7 +327,7 @@ phylum_abundance_vege <- merged_data_vege %>%
 
 
 
-# Convert to long format for ggplot2
+# Convert to long format 
 phylum_abundance_vege_long <- phylum_abundance_vege %>%
   pivot_longer(cols = -phylum, names_to = "sample", values_to = "abundance")
 
@@ -415,22 +391,6 @@ abu_combined_all <- abu_combined_all %>%
   ungroup()
 
 
-ggplot(abu_combined_all, aes(x = phylum, y = abundance, fill = category)) +
-  geom_boxplot(width = 0.8, position = position_dodge(width = 0.75)) +
-  theme_minimal() +
-  labs(title = "Abundance of phyla in stool samples (different habitual diets)",
-       x = "Phyla", y = "Abundance (log10-transformed)") +
-  theme(
-    plot.title = element_text(hjust = 0.5, size=24),  # Center the title
-    axis.title.x = element_text(size = 18),  # Increase x-axis title font size
-    axis.title.y = element_text(size = 18),  # Increase y-axis title font size
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 20, color="black"),
-    axis.text.y = element_text( size = 18, color="black"),# Increase x-axis text size
-    legend.position = "right",
-    legend.title = element_blank(),
-    legend.text = element_text(size=18)) +
-  scale_y_log10(labels = function(x) parse(text = gsub("e", " %*% 10^", scales::scientific_format()(x)))) 
-
 
 # Define your breaks (manually or use log_breaks to generate them)
 my_breaks <- c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100)
@@ -457,53 +417,14 @@ ggplot(abu_combined_all, aes(x = phylum, y = abundance, fill = category)) +
     legend.key.size = unit(2, "cm"),
     panel.grid.major.y = element_line(color = "gray65", size = 0.75),
     panel.grid.minor.y = element_line(color = "gray75", size = 0.5),
-    panel.grid.major.x = element_line(color="gray65", size=0.5)
+    panel.grid.major.x = element_line(color="gray65", size=0.5)) +
+  scale_y_log10(breaks = my_breaks, labels = my_labels) 
+
+
     
-    # Optional: remove vertical grid lines if you want only horizontal ones
    
-    
-    
-    
-    ) +
-  scale_y_log10(breaks = my_breaks, labels = my_labels) 
 
-
-ggplot(abu_combined_all, aes(x = phylum, y = abundance, fill = category)) +
-  geom_boxplot(position = position_dodge2(preserve = "single"), color = "black", size = 1, outlier.size = 2, outlier.shape=16, outlier.colour="black") +
-  stat_summary(fun = median,
-               geom = "text",
-               aes(label = round(..y.., 2)),
-               position = position_dodge2(width = 0.75, preserve = "single"),
-               vjust = -0.5,
-               size = 6) +  # Adjust size to match your plot aesthetics
-  theme_minimal() +
-  labs(title = "Relative abundance of phyla in stool samples (different habitual diets)",
-       x = "Phyla", y = "Relative abundance (%)") +
-  theme(
-    plot.title = element_text(hjust = 0.5, size = 12),  # Center the title
-    axis.title.x = element_text(size = 12),  # Increase x-axis title font size
-    axis.title.y = element_text(size = 12),  # Increase y-axis title font size
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 12, color = "black",face = "italic"),
-    axis.text.y = element_text(size = 12, color = "black"),  # Increase y-axis text size
-    legend.position = "bottom",  # Move legend to the bottom
-    legend.box = "horizontal",  # Arrange legend items horizontally
-    legend.title = element_blank(),
-    legend.text = element_text(size = 12),
-    legend.key.size = unit(2, "cm"),
-    panel.grid.major.y = element_line(color = "gray65", size = 0.75),
-    panel.grid.minor.y = element_line(color = "gray75", size = 0.5),
-    panel.grid.major.x = element_line(color="gray65", size=0.5)
-    
-    # Optional: remove vertical grid lines if you want only horizontal ones
-    
-    
-    
-    
-  ) +
-  scale_y_log10(breaks = my_breaks, labels = my_labels) 
-
-
-
+############# Prevalence plot ############
 
 
 
@@ -533,15 +454,11 @@ ggplot(combined_all, aes(x = phylum, y = Prevalence, fill = category)) +
     legend.title = element_blank() ,
     legend.key.size = unit(1.5, "cm"),
     panel.grid.major.y = element_line(color = "gray65", size = 0.75),
-    panel.grid.minor.y = element_line(color = "gray75", size = 0.5)
-    
-    
-    ) +
+    panel.grid.minor.y = element_line(color = "gray75", size = 0.5)) +
   scale_y_sqrt(
-    breaks = seq(0, 100, by = 10),  # Tick marks every 10 units
-    limits = c(0, 100),             # Optional: restrict y-axis to [0, 100]
-    expand = c(0, 0)                # Optional: remove padding around bars
-  )
+    breaks = seq(0, 100, by = 10),  
+    limits = c(0, 100),             
+    expand = c(0, 0))
 
 
 
@@ -579,10 +496,6 @@ dunn_test_result2 <- filtered_data %>%
   group_by(phylum) %>%
   dunn_test(abundance ~ diet, p.adjust.method = "bonferroni")
 
-
-
-significant_dunn_results <- dunn_test_result2 %>%
-  filter(p.adj < 0.05)
 
 write_xlsx(dunn_test_result2, "dunn_phylum.xlsx")
 write_xlsx(kruskal_test_result, "kruskal_phylum.xlsx")
