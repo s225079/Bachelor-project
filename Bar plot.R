@@ -10,7 +10,7 @@ library(reshape2)
 data <- read.delim("C:/Users/Miras/OneDrive - Danmarks Tekniske Universitet/Skrivebord/6. semester/Bachelor/Genome analysis/Barplot.txt")
 
 
-# Melt the data frame for ggplot2
+# Melt the data frame
 data_melted <- melt(data, id.vars = 'Strain')
 data_melted$variable <- gsub("\\.", "-", data_melted$variable)
 
@@ -26,19 +26,17 @@ substrate_colors <- c(
   'pectin' = 'lightcoral',
   'starch' = 'turquoise',
   'xylan' = 'seagreen3'
-  
-  # Add more substrates and their corresponding colors here
 )
 
 
 
 
 
-# Create the stacked bar chart
+#  stacked bar chart
 ggplot(data_melted, aes(x = Strain, y = value, fill = variable)) +
   geom_bar(stat = 'identity') +
   geom_text(aes(label = value), position = position_stack(vjust = 0.5), size = 9) +
-  scale_fill_manual(values = substrate_colors) +  # Apply the substrate colors
+  scale_fill_manual(values = substrate_colors) + 
   labs(title = 'Counts of PULs for each substrate in bacterial strains', x = 'Bacterial strain', y = 'Total number of PULs', fill='Substrate') +
   theme_minimal() +
   theme(
