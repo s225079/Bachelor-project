@@ -18,32 +18,32 @@ import matplotlib.colors as mcolors
 file_path_t0 = 'C:\Od data\S.cop_210525_t0.xlsx'
 file_path_t24 = 'C:\Od data\s.cop_220525_t24.xlsx'
 file_path_t48 = 'C:\Od data\S.cop_230525_t48.xlsx'
-# Read specific Excel range: C29:L34
+
 df_t0 = pd.read_excel(
     file_path_t0,
-    sheet_name='Sheet2',   # Change if needed
+    sheet_name='Sheet2',   
     engine='openpyxl',
     usecols='C:L',
-    skiprows=27,    # Skip rows before row 29
-    nrows=6         # Rows 29–34
+    skiprows=27,  
+    nrows=6        
 )
 
 df_t24 = pd.read_excel(
     file_path_t24,
-    sheet_name='Sheet2',   # Change if needed
+    sheet_name='Sheet2',   
     engine='openpyxl',
     usecols='C:L',
-    skiprows=27,    # Skip rows before row 29
-    nrows=6         # Rows 29–34
+    skiprows=27,    
+    nrows=6        
 )
 print(df_t24)
 df_t48 = pd.read_excel(
     file_path_t48,
-    sheet_name='Sheet2',   # Change if needed
+    sheet_name='Sheet2',   
     engine='openpyxl',
     usecols='C:L',
-    skiprows=27,    # Skip rows before row 29
-    nrows=6         # Rows 29–34
+    skiprows=27,    
+    nrows=6         
 )
 
 # Convert to NumPy array
@@ -375,7 +375,7 @@ plt.errorbar(t, mean_bglucan, yerr=std_bglucan, fmt='o-', capsize=10, elinewidth
 
 
 
-# Your existing data placeholders and variables
+
 x = np.array([0, 1.5])  # Positions for 24h and 48h
 t = ['24 h', '48 h']
 bar_width = 0.08
@@ -389,7 +389,7 @@ stds = [std_H20, std_Glu, std_Ara, std_SBP, std_CP, std_RGI,
 labels = [ 'Water', 'Glucose', 'AOS', 'SBP', 'CP', 'RG-I',
           'Galactomannan', 'FOS', 'Inulin', 'Starch', 'beta-glucan']
 
-# Define colors (you can choose any matplotlib color names or hex codes)
+# Define colors
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', 
           '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', "#1831BE"]
 
@@ -399,7 +399,7 @@ for i in range(len(means)):
     plt.bar(x + offset, means[i], width=bar_width, yerr=stds[i],
             capsize=7, label=labels[i], error_kw=dict(lw=3.5), color=colors[i])
 
-# Formatting (same as before)
+# Formatting
 plt.xticks(x, t)
 plt.xlabel('Time (hours)', fontsize=26)
 plt.ylabel('Relative ΔOD_600', fontsize=26)
