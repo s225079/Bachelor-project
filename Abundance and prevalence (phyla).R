@@ -51,11 +51,11 @@ n_base <- (nrow(dat1)/nrow(data))*100
 
 
 
-# Convert rowData (taxonomy) and assay (abundance) to data frames
+
 tax <- rowData(dat) %>% data.frame()  # Extract taxonomy
 abu <- assay(dat) %>% data.frame()    # Extract abundance
 
-# Move row names of abu to a column to match taxonomy
+
 abu <- abu %>% rownames_to_column(var = "species")
 
 merged_data <- merge(tax[, c("species", "phylum")], abu, by = "species")
@@ -99,7 +99,7 @@ ggplot(phylum_abundance_long, aes(x = phylum, y = abundance, fill=phylum)) +
 
 ######### Plots of prevelance ########
 
-#Counting the number of columns=0
+
 zero_counts <- numeric(nrow(phylum_abundance))  # Create a vector to store results
 
 for (i in 1:nrow(phylum_abundance)){
@@ -163,7 +163,7 @@ merged_data_IBD <- merge(tax_IBD[, c("species", "phylum")], abu_IBD, by = "speci
 
 phylum_abundance_IBD <- merged_data_IBD %>%
   group_by(phylum) %>%
-  summarise(across(where(is.numeric), sum, na.rm = TRUE)) # Sum values per phylum
+  summarise(across(where(is.numeric), sum, na.rm = TRUE)) 
 
 
 
@@ -201,11 +201,7 @@ df_prev_IBD <- na.omit(df_prev_IBD)
 
 ############### vegan ##############
 
-
-
 ##### Collection of data #######
-
-
 
 
 dat_vegan <-sampleMetadata |>
@@ -229,7 +225,6 @@ dat1_vegan <- colData(dat_vegan) %>% data.frame()
 tax_vegan <- rowData(dat_vegan) %>% data.frame()  # Extract taxonomy
 abu_vegan <- assay(dat_vegan) %>% data.frame()    # Extract abundance
 
-# Move row names of abu to a column to match taxonomy
 abu_vegan <- abu_vegan %>%
   rownames_to_column(var = "species")
 
@@ -307,11 +302,10 @@ dat1_vege <- colData(dat_vege) %>% data.frame()
 
 
 
-# Convert rowData (taxonomy) and assay (abundance) to data frames
 tax_vege <- rowData(dat_vege) %>% data.frame()  # Extract taxonomy
 abu_vege <- assay(dat_vege) %>% data.frame()    # Extract abundance
 
-# Move row names of abu to a column to match taxonomy
+
 abu_vege <- abu_vege %>%
   rownames_to_column(var = "species")
 
@@ -392,13 +386,13 @@ abu_combined_all <- abu_combined_all %>%
 
 
 
-# Define your breaks (manually or use log_breaks to generate them)
+# Define breaks
 my_breaks <- c(0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100)
 
-# Define labels with varying accuracy
+# Define labels 
 my_labels <- c( "0,0001","0.0001", "0.001", "0.01", "0.1", "1","10","100")
 
-########## new""""""""
+########## plot ##############
 ggplot(abu_combined_all, aes(x = phylum, y = abundance, fill = category)) +
   geom_boxplot(position = position_dodge2(preserve = "single"), color = "black", size = 1, outlier.size = 2, outlier.shape=16, outlier.colour="black") +
   theme_minimal() +
@@ -464,7 +458,7 @@ ggplot(combined_all, aes(x = phylum, y = Prevalence, fill = category)) +
 
 ################ SIgnificans ###########
 
-# Combine all long-form abundance data with diet label
+# Combine all long-form abundance data 
 phylum_abundance_IBD_long$diet <- "omnivore"
 phylum_abundance_vegan_long$diet <- "vegan"
 phylum_abundance_vege_long$diet <- "vegetarian"
@@ -477,21 +471,21 @@ combined_data <- bind_rows(
 
 
 
-# Perform the Kruskal-Wallis test
+#  the Kruskal-Wallis test
 kruskal_test_result <- combined_data %>%
   group_by(phylum) %>%
   kruskal_test(abundance ~ diet)
 
-# Filter Kruskal-Wallis test results by p-value (e.g., p < 0.05)
+# Filter Kruskal-Wallis test results by p-value 
 significant_phyla <- kruskal_test_result %>%
   filter(p < 0.05) %>%
   pull(phylum)
 
-# Subset the original data to include only significant phyla
+# Subset data to include only significant phyla
 filtered_data <- combined_data %>%
   filter(phylum %in% significant_phyla)
 
-# Perform the Dunn test only on significant phyla
+# Perform the Dunn test 
 dunn_test_result2 <- filtered_data %>%
   group_by(phylum) %>%
   dunn_test(abundance ~ diet, p.adjust.method = "bonferroni")
