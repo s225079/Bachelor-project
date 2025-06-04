@@ -1,0 +1,173 @@
+
+
+## Load libraries --------------------------------------------------------------
+
+
+library(dplyr)
+library(tidyr)
+
+## Set paths -------------------------------------------------------------------
+
+
+#Path to dbCAN results
+path_dbCAN <- paste('C:\\Users\\Miras\\OneDrive - Danmarks Tekniske Universitet\\Skrivebord\\6. semester\\Bachelor\\Genome analysis\\Bacteroides ovatus DSM 1896', sep = '')
+
+#Path to gapseq results
+path_gapseq <- paste('C:\\Users\\Miras\\OneDrive - Danmarks Tekniske Universitet\\Skrivebord\\6. semester\\Bachelor\\Genome analysis\\Bacteroides ovatus DSM 1896', sep = '')
+
+#Path to substrate mapping table
+path_mapping <- paste('C:\\Users\\Miras\\OneDrive - Danmarks Tekniske Universitet\\Skrivebord\\6. semester\\Bachelor\\Genome analysis', sep = '')
+
+## Read tables -----------------------------------------------------------------
+#Read dbCAN overview table
+A.r_CAZymes <- read.delim(paste(path_dbCAN, 'Bacteroides ovatus table.txt', 
+                                sep = '/'))
+
+#Read dbCAN CGC table
+A.r_CGCs <- read.delim(paste(path_dbCAN, 'CGCs sub.txt', sep = '/'))
+
+#Read substrate mapping table for dbcan_sub families
+sub_mapping <- read.delim(paste(path_mapping, 'sub_v2_mapping.tsv', sep = '/'))
+
+#Read gapseq results
+# butyrate results
+A.r_gapseq.b <- read.delim(paste(path_gapseq,
+                                 'B.ovatus_DSM1896-butyrate-Pathways.tbl',
+                                 sep = '/'), skip = 3)
+# propionate results
+A.r_gapseq.p <- read.delim(paste(path_gapseq,
+                                 'B.ovatus_DSM1896-propionate-Pathways.tbl',
+                                 sep = '/'), skip = 3)
+
+# acetate results
+A.r_gapseq.a <- read.delim(paste(path_gapseq,
+                                 'B.ovatus_DSM1896-acetate-Pathways.tbl',
+                                 sep = '/'), skip = 3)
+
+
+## Annotate CAZymes with substrate ---------------------------------------------
+A.r_CAZy_sub <- A.r_CAZymes %>% 
+  filter(X.ofTools >= 2) %>% #keep only CAZymes predicted by at least 2 tools
+  filter(dbCAN_sub != 'N') %>% #keep only those with a dbcan_sub prediction
+  separate_rows(dbCAN_sub, sep = '\\+') %>% #split into CAZyme domains
+  distinct() %>% #remove duplicates
+  select(Gene.ID, EC., dbCAN_sub) #extract columns we need downstream
+
+#Identify the CAZy family and class of each CAZyme
+A.r_CAZy_sub$family <- gsub('_e\\d*', '', A.r_CAZy_sub$dbCAN_sub)
+A.r_CAZy_sub$class <- gsub('\\d*', '', A.r_CAZy_sub$family)
+
+#Keep only degradative CAZymes
+A.r_CAZy_sub <- A.r_CAZy_sub %>% 
+  filter(!(class %in% c('GT', 'CBM')))
+
+#Now we want to add the substrate annotation from the annotation file
+# we do this for each CAZyme row-wise in a loop
+A.r_CAZy_sub$substrate <- NA
+for (i in 1:nrow(A.r_CAZy_sub)){
+  #Find the subfamiliy in the mapping table
+  sub <- sub_mapping %>% filter(subfam == A.r_CAZy_sub$dbCAN_sub[i])
+  if(nrow(sub) == 1){
+    #If only one annotation in subfamily, use that one
+    A.r_CAZy_sub$substrate[i] <- sub$Substrates
+  } else{ #If there are multiple annotations
+    #Filter out 'empty' annotations
+    sub <- sub %>% filter(Substrates != '-') %>% filter(!is.na(Substrates))
+    #If multiple different substrate options, they are separated by |
+    A.r_CAZy_sub$substrate[i] <- paste(sort(unique(sub$Substrates)), 
+                                       collapse = ' | ')
+  }
+}
+sum(!is.na(A.r_CAZy_sub$substrate))
+A.r_CAZy_sub <- A.r_CAZy_sub  %>% separate_rows(substrate, sep = ' \\| ') %>%
+  separate_rows(substrate, sep = ', and  ') %>% 
+  separate_rows(substrate, sep = ', and ') %>%
+  separate_rows(substrate, sep = ' and ') %>% 
+  separate_rows(substrate, sep = ', ')
+
+#Extract the CAZymes targeting those fibers that we will test in the lab
+sub <- c('beta-glucan', 'xylan', 'beta-mannan', 'beta-galactan', 'pectin', 
+         'arabinan', 'starch', 'alpha-glucan', 'fructan')
+A.r_CAZy_sub_filt <- A.r_CAZy_sub[grep(paste(sub, collapse = '|'), 
+                                       A.r_CAZy_sub$substrate),]
+
+#Check which of the substrates the genome has CAZymes for
+table(A.r_CAZy_sub_filt$substrate)
+
+#Check which CAZyme family it has for each substrate
+
+A.r_CAZy_sub_filt %>% select(family, substrate)
+
+# Load the necessary library for plotting
+
+library(ggplot2)
+
+# Create a data frame that shows the count of each family-substrate pair
+
+family_substrate_counts <- A.r_CAZy_sub_filt %>%
+  group_by(family, substrate) %>%
+  summarise(count = n(), .groups = 'drop')
+
+
+write.table(family_substrate_counts, 
+            file = paste0(path_dbCAN, "/B_ova_family_substrate_counts.txt"), 
+            sep = "\t", 
+            row.names = FALSE, 
+            col.names = TRUE)
+
+
+
+
+## Extract CGC results ---------------------------------------------------------
+#Identified substrates for CGCs (via. BLAST)
+
+table(A.r_CGCs$dbCAN.PUL.substrate)
+
+
+#Filter substrates used in the experiment
+
+A.r_CGCs_filt <- A.r_CGCs[grep(paste(sub, collapse = '|'), 
+                               A.r_CGCs$dbCAN.PUL.substrate),]  
+
+
+
+#Identified substrates for CGCs (via. dbCAN hmm sub majority rules)
+#table(A.r_CGCs$dbCAN.sub.substrate)
+
+## Extract SCFAs from gapseq ---------------------------------------------------
+#IDs of the pathways that are known to prouduce each of the SCFAs
+b.paths <- c('|PWY-5677|', 'AC-BUT-COATRANS', '|CENTFERM-PWY|') 
+p.paths <- c('|PWY-5494|', '|PWY0-43|', '|P108-PWY|', '|PWY-7013|')
+a.paths <- c('|PWY-8086|','|PWY0-1312|', '|PWY-5535|', '|PWY-8328|', 
+             '|PWY-5536|', '|PWY-8377|', 'LWP-GS', '|PWY-5482|', '|PWY-5768|')
+
+#Filter for the pathways that we are interested in
+A.r_gapseq.b <- A.r_gapseq.b %>% filter(ID %in% b.paths)
+A.r_gapseq.p <- A.r_gapseq.p %>% filter(ID %in% p.paths)
+A.r_gapseq.a <- A.r_gapseq.a %>% filter(ID %in% a.paths)
+
+
+
+# Filter tables to only include rows where Prediction is 'true'
+Final_table_b <- Final_table_b %>% filter(grepl("true", Prediction, ignore.case = TRUE))
+Final_table_p <- Final_table_p %>% filter(grepl("true", Prediction, ignore.case = TRUE))
+Final_table_a <- Final_table_a %>% filter(grepl("true", Prediction, ignore.case = TRUE))
+
+
+#Eport files:
+
+if (nrow(Final_table_b) > 0) {
+  write.csv(Final_table_b, paste(path_dbCAN, "B.ova_final_table_b.csv", sep = "/"), row.names = FALSE)
+}
+
+if (nrow(Final_table_p) > 0) {
+  write.csv(Final_table_p, paste(path_dbCAN, "B.ova_final_table_p.csv", sep = "/"), row.names = FALSE)
+}
+
+if (nrow(Final_table_a) > 0) {
+  write.csv(Final_table_a, paste(path_dbCAN, "B.ova_final_table_a.csv", sep = "/"), row.names = FALSE)
+}
+
+
+write.csv(A.r_CGCs_filt,paste(path_dbCAN,"B.ova_CGCs_filt.csv",sep="/"), row.names = FALSE)
+
