@@ -1,0 +1,117 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the data
+file_path = 'C:/SCFA/SCFA_selected_samples.xlsx'
+df = pd.read_excel(file_path, sheet_name='Sheet3', engine='openpyxl')
+
+plt.rcParams.update({
+    'axes.titlesize': 18,        
+    'axes.labelsize': 18,        
+    'xtick.labelsize': 18,       
+    'ytick.labelsize': 18,
+    'legend.fontsize': 18,       
+    'figure.titlesize': 24     
+})
+
+
+# Assign column names
+df.columns = ['Bacteria', 'Fiber', 'SCFA', 'Conc']
+
+# Filter for Acetate and exclude 'V. dispar' and 'Water' samples
+acetate_data = df[(df['SCFA'] == 'Acetate') & 
+                  (df['Bacteria'] != 'V. dispar') & 
+                  (df['Fiber'] != 'Water')]
+
+# Get unique bacteria and fibers
+bacteria = acetate_data['Bacteria'].unique()
+fibers = acetate_data['Fiber'].unique()
+
+# Create color palette 
+palette = sns.color_palette("husl", len(fibers))
+fiber_colors = dict(zip(fibers, palette))
+
+# The plot
+num_bacteria = len(bacteria)
+cols = 3
+rows = (num_bacteria + cols - 1) // cols
+
+fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows), constrained_layout=True)
+fig.suptitle('Acetate concentration (mg/L) in bacterial supernatants')
+
+
+
+
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+          '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', "#1831BE"]
+
+labels = ['Water', 'Glucose', 'AOS', 'SBP', 'CP', 'RG-I',
+          'Galactomannan', 'FOS', 'Inulin', 'Starch', 'beta-glucan']
+
+
+fiber_colors = dict(zip(labels, colors))
+
+#Create the plot
+for i, bacterium in enumerate(bacteria):
+    ax = axes[i // cols, i % cols]
+    data = acetate_data[acetate_data['Bacteria'] == bacterium]
+    sns.barplot(x='Fiber', y='Conc', data=data, ax=ax, palette=fiber_colors)
+    ax.set_title(r"$\it{" + bacterium + "}$")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+    ax.set_ylabel('')
+    ax.set_xlabel('')
+    ax.yaxis.set_major_locator(plt.MaxNLocator(3))
+
+# Remove empty subplots
+for j in range(i + 1, rows * cols):
+    fig.delaxes(axes[j // cols, j % cols])
+
+plt.tight_layout
+plt.show()
+
+############## Butyrate #############
+
+
+
+# Filter for Acetate and exclude 'V. dispar' and 'Water' samples
+butyrate_data = df[(df['SCFA'] == 'Butyrate') & 
+                  (df['Bacteria'] != 'V. dispar') & 
+                  (df['Bacteria'] != 'I. butyriciproducens') & 
+                  (df['Fiber'] != 'Water')
+                  ]
+
+# Get unique bacteria and fibers
+bacteria = butyrate_data['Bacteria'].unique()
+fibers = butyrate_data['Fiber'].unique()
+
+# Create color palette
+
+fiber_colors = dict(zip(labels, colors))
+
+
+# Create the plot
+num_bacteria = len(bacteria)
+cols = 3
+rows = (num_bacteria + cols - 1) // cols
+
+fig, axes = plt.subplots(rows, cols, figsize=(15, 5 * rows), constrained_layout=True)
+fig.suptitle('Butyrate concentration (mg/L) in bacterial supernatants')
+
+for i, bacterium in enumerate(bacteria):
+    ax = axes[i // cols, i % cols]
+    data = butyrate_data[butyrate_data['Bacteria'] == bacterium]
+    sns.barplot(x='Fiber', y='Conc', data=data, ax=ax, palette=fiber_colors)
+    ax.set_title(r"$\it{" + bacterium + "}$")
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+    ax.set_ylabel('')
+    ax.set_xlabel('')
+    ax.yaxis.set_major_locator(plt.MaxNLocator(3)) 
+
+# Remove empty subplots
+for j in range(i + 1, rows * cols):
+    fig.delaxes(axes[j // cols, j % cols])
+
+plt.tight_layout
+plt.show()
+
