@@ -14,7 +14,7 @@ df6 <- read.table(paste0(path_heat, "/B_long_family_substrate_counts.txt"), sep 
 df7 <- read.table(paste0(path_heat, "/P_clar_family_substrate_counts.txt"), sep = "\t", header = TRUE)
 df8 <- read.table(paste0(path_heat, "/I_but_family_substrate_counts.txt"), sep = "\t", header = TRUE)
 
-# list of data frames with names for each strain
+# Create a list of data frames with names for each strain
 strain_data <- list(
   'B. intestini' = df3,
   'S. salivae' = df2,
@@ -35,7 +35,10 @@ substrate_colors <- c(
   'fructan'='orange',
   'pectin' = 'lightcoral',
   'starch' = 'turquoise2',
-  'xylan' = 'seagreen3')
+  'xylan' = 'seagreen3'
+  
+  # Add more substrates and their corresponding colors here
+)
 
 # Combine all strains into a single data frame
 combined_data <- bind_rows(strain_data, .id = "Strain")
@@ -57,16 +60,16 @@ heatmap_data <- combined_data %>%
 
 # Convert to matrix
 heatmap_matrix <- as.matrix(heatmap_data %>% select(-RowID)) 
-rownames(heatmap_matrix) <- heatmap_data$RowID  
+rownames(heatmap_matrix) <- heatmap_data$RowID  # Set row names as "family_substrate"
 
-
+# Ensure columns are ordered correctly
 strain_order <- c("A. rectalis", "S. salivae", "B. intestini", "S. copri", "B. ovatus", "B. infantis", "P. clara", "I. butyriciproducens")
 heatmap_matrix <- heatmap_matrix[, strain_order, drop = FALSE]
 
 # Transpose matrix to flip rows and columns
 heatmap_matrix <- t(heatmap_matrix)
 
-# Log normalization (log1p)
+# Log normalization (log1p to avoid log(0) issues)
 heatmap_matrix_normalized <- log1p(heatmap_matrix)
 
 
@@ -91,10 +94,12 @@ strain_labels <- c("italic('A. rectalis')", "italic('S. salivae')", "italic('B. 
 # Convert strings to expressions
 strain_labels_expr <- parse(text = strain_labels)
 
-# heatmap 
+
+
+# Plot heatmap with updated annotation and color labels
 pheatmap(heatmap_matrix_normalized, cluster_rows = TRUE, cluster_cols = FALSE,
          main = "CAZyme families linked to dietary fibers identified in bacterial strains",
-         angle_col = 90, fontsize=15,
+         angle_col = 90, fontsize=18,
          annotation_col = annotation_row,
          annotation_colors = list(Substrate = substrate_colors),
          breaks = seq(min(heatmap_matrix_normalized), max(heatmap_matrix_normalized), length.out = 100),
@@ -105,5 +110,35 @@ pheatmap(heatmap_matrix_normalized, cluster_rows = TRUE, cluster_cols = FALSE,
          labels_row = strain_labels_expr,
          legend = TRUE
 )
+
+
+
+# 2. Use BiocManager to install ComplexHeatmap
+BiocManager::install("ComplexHeatmap")
+library(ComplexHeatmap)
+
+
+library(ComplexHeatmap)
+library(circlize)
+
+# Ensure annotation_row has rownames that match colnames of the matrix
+# (if not already set)
+rownames(annotation_row) <- colnames(heatmap_matrix_normalized)
+
+# Create column annotation
+column_ha <- HeatmapAnnotation(df = annotation_row,
+                               col = list(Substrate = substrate_colors),
+                               annotation_legend_side = "bottom")
+
+# Plot heatmap
+Heatmap(heatmap_matrix_normalized,
+        name = "Abundance",
+        top_annotation = column_ha,
+        column_names_rot = 45,
+        cluster_columns = FALSE,
+        cluster_rows = TRUE,
+        show_row_names = TRUE,
+        show_column_names = TRUE)
+
 
 
